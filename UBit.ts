@@ -1,10 +1,9 @@
-
 /**
-* Utilice este archivo para definir funciones y bloques personalizados.
-* Lea más en https://makecode.microbit.org/blocks/custom
-*/
+ * Use this file to define custom functions and blocks.
+ * Read more at https://makecode.microbit.org/blocks/custom
+ */
 
-let _remoteLight: number = -999; // Variable to store the last received temperature
+let _remoteLight: number = -999; // Variable to store the last received light level
 let _waitingForLight: boolean = false; // Flag to indicate if we are currently waiting for a response
 let _responseLight: boolean = false; // Flag to indicate if a response came back during the wait
 
@@ -12,43 +11,37 @@ let _remoteTemperature: number = -999; // Variable to store the last received te
 let _waitingForTemperature: boolean = false; // Flag to indicate if we are currently waiting for a response
 let _responseTemperature: boolean = false; // Flag to indicate if a response came back during the wait
 
-let _remoteDirection: number = -999; // Variable to store the last received temperature
+let _remoteDirection: number = -999; // Variable to store the last received direction
 let _waitingForDirection: boolean = false; // Flag to indicate if we are currently waiting for a response
 let _responseDirection: boolean = false; // Flag to indicate if a response came back during the wait
 
-let _remoteSound: number = -999; // Variable to store the last received temperature
+let _remoteSound: number = -999; // Variable to store the last received sound level
 let _waitingForSound: boolean = false; // Flag to indicate if we are currently waiting for a response
 let _responseSound: boolean = false; // Flag to indicate if a response came back during the wait
 
 // Stores the last received number
 let lastReceivedNumber = "";
 
-
-let BUFF_LEN = 50
-let I2C_TIME_INTERVAL = 500
-let col = 0
-let row = 0
-let str = ""
-let StopI2CScreen = 0
+let BUFF_LEN = 50;
+let I2C_TIME_INTERVAL = 500;
+let col = 0;
+let row = 0;
+let str = "";
+let StopI2CScreen = 0;
 
 let newLedMatrix = pins.createBuffer(25);
 let lastLedMatrix = pins.createBuffer(25);
 
-// Declare a 2D array for the matrix (rows are declared here)
-
-
 // Padding function
 function padEnd(message: string, length: number, char: string) {
     while (message.length < length) {
-        message = "" + message + char
+        message = "" + message + char;
     }
-    return message
+    return message;
 }
 
-//Transforma el string a buffer, lo rellena y lo manda a la UBit
+// Transforms string to buffer, pads it, and sends it to the UBit
 function sendWiFiBuffer(message1: string, message2: string) {
-    // Calculate available space for each message after adding '?'
-
     // Construct the formatted message with '?' at positions
     let finalMessage = "?" + message1 + "?" + message2 + "?";
 
@@ -65,7 +58,7 @@ function sendWiFiBuffer(message1: string, message2: string) {
     pins.i2cWriteBuffer(7, buffer2, false);
 }
 
-//Transforma el string a buffer, lo rellena y lo manda a la UBit
+// Transforms string to buffer, pads it, and sends it to the UBit
 function sendTextBuffer(message: string) {
     // Ensure the message does not exceed BUFF_LEN - 1 to make space for '%'
     if (message.length > BUFF_LEN - 1) {
@@ -94,40 +87,46 @@ function copyBuffer(original: Buffer): Buffer {
 }
 
 function isAllZero(buffer: Buffer) {
-    // Recorre todo el buffer y devuelve 'true' si todos los valores son 0
+    // Iterates through the buffer and returns true if all values are 0
     for (let i = 0; i < buffer.length; i++) {
         if (buffer[i] !== 0) {
-            return false; // Si encuentra un valor distinto de 0, retorna false
+            return false; // If a non-zero value is found, return false
         }
     }
-    return true; // Si todos los valores son 0, retorna true
+    return true; // If all values are 0, return true
 }
 
-
-// Transforma el string a buffer, lo rellena y lo manda a la UBit. 
-// Se asegura que el primer caracter sea # por ser un icono
+// Transforms the string to buffer, pads it, and sends it to the UBit.
+// Ensures the first character is # as it is an icon.
 function sendIconBuffer() {
     let LedMatrix = pins.createBuffer(25);
     let buffer2 = pins.createBuffer(BUFF_LEN);
-    
+
     for (let i = 0; i <= 24; i++) {
-        row = Math.floor(i / 5)
-        col = i % 5
-        LedMatrix.setNumber(NumberFormat.UInt8LE, i, led.point(row, col) ? 1 : 0);
+        row = Math.floor(i / 5);
+        col = i % 5;
+        LedMatrix.setNumber(
+            NumberFormat.UInt8LE,
+            i,
+            led.point(row, col) ? 1 : 0,
+        );
     }
 
     if (!LedMatrix.equals(lastLedMatrix) || isAllZero(LedMatrix)) {
         lastLedMatrix = copyBuffer(LedMatrix);
         return;
     }
-    
 
     // Place '#' at the first position
     buffer2.setNumber(NumberFormat.UInt8LE, 0, "#".charCodeAt(0));
 
     // Copy the 25-byte matrixBuffer into buffer2, shifting to the right
     for (let i = 0; i < 25; i++) {
-        buffer2.setNumber(NumberFormat.UInt8LE, i + 1, LedMatrix.getNumber(NumberFormat.UInt8LE, i));
+        buffer2.setNumber(
+            NumberFormat.UInt8LE,
+            i + 1,
+            LedMatrix.getNumber(NumberFormat.UInt8LE, i),
+        );
     }
 
     // Fill the rest with spaces (ASCII 32)
@@ -154,22 +153,20 @@ function handleMessage(msg: string): void {
     }
 }
 
-
 /**
- * Custom blocks
+ * Custom blocks for UBit extension
  */
 //% weight=100 color=#226F54 icon="\uf29a"
 namespace UBit {
-    
     /**
-    * Reproduce el texto o número por audio en la UBit y lo muestra en la pantalla.
-    */
-    //% block="Mostrar cadena $message con audio"
+     * Plays the text or number via audio on the UBit and displays it on the screen.
+     */
+    //% block="Show string $message with audio"
     //% message.shadow="text"
     export function RepTextwithScreen(message: string | number) {
         let textString;
-        if (typeof message !== "string"){
-            textString = message.toString(); // Convert number to string if needed
+        if (typeof message !== "string") {
+            textString = message.toString();
         } else {
             textString = message;
         }
@@ -179,269 +176,227 @@ namespace UBit {
         StopI2CScreen = 0;
     }
 
-
     /**
-    * Reproduce el texto escrito por audio en la UBit.
-    */
-    //% block="Reproducir $message por audio"
+     * Plays the written text via audio on the UBit.
+     */
+    //% block="Play $message via audio"
     //% message.shadow="text"
     export function RepText(message: any) {
-        let text = message.toString(); // Convert number to string if needed
-        StopI2CScreen = 1
-        sendTextBuffer(text)
-        StopI2CScreen = 0
+        let text = message.toString();
+        StopI2CScreen = 1;
+        sendTextBuffer(text);
+        StopI2CScreen = 0;
     }
 
     /**
-    * Conecta la UBit a la red deseada. 
-    * En caso de no usar este bloque se conectara a la red de Ceibal.
-    */
-    //% block="Conectarse a la red $WiFi con la contraseña $Pssw"
+     * Connects the UBit to the desired network.
+     * If this block is not used, it will connect to the Ceibal network.
+     */
+    //% block="Connect to network $WiFi with password $Pssw"
     export function ConWiFi(WiFi: string, Pssw: string) {
-        StopI2CScreen = 1
-        sendWiFiBuffer(WiFi, Pssw)
-        StopI2CScreen = 0
-        str = ""
+        StopI2CScreen = 1;
+        sendWiFiBuffer(WiFi, Pssw);
+        StopI2CScreen = 0;
+        str = "";
     }
 
     /**
-    * Reproduce el texto o número por audio en la UBit y lo muestra en la pantalla.
-    */
-    //% block="Mostrar numero $message con audio"
+     * Plays the number via audio on the UBit and displays it on the screen.
+     */
+    //% block="Show number $message with audio"
     export function RepNumtwithScreen(message: number) {
-        let textString = message.toString(); // Convert number to string if needed
+        let textString = message.toString();
         StopI2CScreen = 1;
         sendTextBuffer(textString);
         basic.showString(textString);
         StopI2CScreen = 0;
     }
 
-
     /**
-    * Habilita/deshabilita la salida por audio de lo 
-    * íconos vistos en el display de la micro:bit.
-    */
-    //% block="Activar iconos con audio $yes"
+     * Enables/disables audio output for the
+     * icons shown on the micro:bit display.
+     */
+    //% block="Enable icons with audio $yes"
     //% yes.shadow="toggleOnOff"
     export function Icon(yes: boolean) {
-        if(yes) {
+        if (yes) {
             loops.everyInterval(I2C_TIME_INTERVAL, function () {
-                if (StopI2CScreen == 0){
+                if (StopI2CScreen == 0) {
                     sendIconBuffer();
-                }  
-            })
-        }    
+                }
+            });
+        }
     }
 
-
     /**
-     * Get the temperature in Celsius from a specified micro:bit.
-     * @param sensorNumber The radio group number to communicate with a micro:bit.
+     * Get the temperature in Celsius from a specified remote micro:bit.
      */
-    //% block="Temperatura (°C) de micro:bit externa"
+    //% block="Temperature (°C) from external micro:bit"
     export function getTemperature(): number {
-        // Reset state for this request
-        _remoteTemperature = -999; // Default/error value
+        _remoteTemperature = -999;
         _waitingForTemperature = true;
         _responseTemperature = false;
 
         radio.sendString("Tem");
 
         const startTime = control.millis();
-        const timeout = 1000; // 1000 ms = 1 second timeout
+        const timeout = 1000;
 
         while (control.millis() - startTime < timeout) {
             if (_responseTemperature) {
-                // Response arrived (handler set _responseReceived and _remoteTemperature)
-                // _waitingForTemperature should already be false from the handler
                 return _remoteTemperature;
             }
-            // Pause briefly to allow background tasks (like radio receive) to run
             basic.pause(20);
         }
 
-        _waitingForTemperature = false; // Ensure we are no longer waiting
-        return -999; // Indicate timeout/failure
+        _waitingForTemperature = false;
+        return -999;
     }
 
     /**
- * Tomar el nivel de luz desde una micro:bit externa
- */
-    //% block="Nivel de luz de micro:bit externa"
+     * Get the light level from an external micro:bit.
+     */
+    //% block="Light level from external micro:bit"
     export function getLight(): number {
-        // Reset state for this request
-        _remoteLight = -999; // Default/error value
+        _remoteLight = -999;
         _waitingForLight = true;
         _responseLight = false;
 
-        // Send the request signal
         radio.sendString("Lig");
 
-        // Wait for a response with a timeout
         const startTime = control.millis();
-        const timeout = 1000; // 1000 ms = 1 second timeout
+        const timeout = 1000;
 
         while (control.millis() - startTime < timeout) {
             if (_responseLight) {
-                // Response arrived (handler set _responseReceived and _remoteTemperature)
-                // _waitingForTemperature should already be false from the handler
                 return _remoteLight;
             }
-            // Pause briefly to allow background tasks (like radio receive) to run
             basic.pause(20);
         }
 
-        // If loop finishes without _responseReceived being true, it's a timeout
-        _waitingForLight = false; // Ensure we are no longer waiting
-        // serial.writeLine("Timeout waiting for remote temp"); // Optional debug message
-        return -999; // Indicate timeout/failure
+        _waitingForLight = false;
+        return -999;
     }
 
-
     /**
-    * Tomar el nivel de sonido desde una microbit externa
-    */
-    //% block="Nivel de sonido de micro:bit externa"
+     * Get the sound level from an external micro:bit.
+     */
+    //% block="Sound level from external micro:bit"
     export function getSound(): number {
-        // Reset state for this request
-        _remoteSound = -999; // Default/error value
+        _remoteSound = -999;
         _waitingForSound = true;
         _responseSound = false;
 
-        // Send the request signal
         radio.sendString("Sou");
 
-        // Wait for a response with a timeout
         const startTime = control.millis();
-        const timeout = 1000; // 1000 ms = 1 second timeout
+        const timeout = 1000;
 
         while (control.millis() - startTime < timeout) {
             if (_responseSound) {
-                // Response arrived (handler set _responseReceived and _remoteTemperature)
-                // _waitingForTemperature should already be false from the handler
-                return _remoteLight;
+                return _remoteSound;
             }
-            // Pause briefly to allow background tasks (like radio receive) to run
             basic.pause(20);
         }
 
-        // If loop finishes without _responseReceived being true, it's a timeout
-        _waitingForSound = false; // Ensure we are no longer waiting
-        // serial.writeLine("Timeout waiting for remote temp"); // Optional debug message
-        return -999; // Indicate timeout/failure
+        _waitingForSound = false;
+        return -999;
     }
 
     /**
-    * Dirección de brújula de microbit externa
-    */
-    //% block="Dirección de la brujula de micro:bit externa "
+     * Get the compass heading from an external micro:bit.
+     */
+    //% block="Compass heading from external micro:bit"
     export function getDirection(): number {
-        // Reset state for this request
-        _remoteDirection = -999; // Default/error value
+        _remoteDirection = -999;
         _waitingForDirection = true;
         _responseDirection = false;
 
-        // Send the request signal
         radio.sendString("Dir");
 
-        // Wait for a response with a timeout
         const startTime = control.millis();
-        const timeout = 1000; // 1000 ms = 1 second timeout
+        const timeout = 1000;
 
         while (control.millis() - startTime < timeout) {
             if (_responseDirection) {
-                // Response arrived (handler set _responseReceived and _remoteTemperature)
-                // _waitingForTemperature should already be false from the handler
                 return _remoteDirection;
             }
-            // Pause briefly to allow background tasks (like radio receive) to run
             basic.pause(20);
         }
 
-        // If loop finishes without _responseReceived being true, it's a timeout
-        _waitingForDirection = false; // Ensure we are no longer waiting
-        // serial.writeLine("Timeout waiting for remote temp"); // Optional debug message
-        return -999; // Indicate timeout/failure
+        _waitingForDirection = false;
+        return -999;
     }
 
     /**
-    * Usar sensores externos de micro:bit
-    */
-    //% block="Usar sensores de micro:bit externa $channel"
+     * Use sensors from an external micro:bit on the specified channel.
+     */
+    //% block="Use sensors from external micro:bit $channel"
     //% channel.min=1 channel.max=255
     export function ExternalSensors(channel: number) {
         radio.setGroup(channel);
-        /**radio.onReceivedValue(function (name, value) {
-            if (name == "Tem") {
-                temFlag = true;
-                temValue = value;
-             } else if (name == "Lig") {
-                ligFlag = true;
-                ligValue = value;
-            } else if (name == "Dir") {
-                dirFlag = true;
-                dirValue = value;
-            } else if (name == "Sou") {
-                ligFlag = true;
-                dirValue = value;
-            }
-        });*/
 
         radio.onReceivedValue(function (tag, value) {
             if (_waitingForLight && tag == "Lig") {
                 _remoteLight = value;
                 _responseLight = true;
-                _waitingForLight = false; // Stop waiting once received
+                _waitingForLight = false;
             }
             if (_waitingForTemperature && tag == "Tem") {
                 _remoteTemperature = value;
                 _responseTemperature = true;
-                _waitingForTemperature = false; // Stop waiting once received
+                _waitingForTemperature = false;
             }
             if (_waitingForDirection && tag == "Dir") {
                 _remoteDirection = value;
                 _responseDirection = true;
-                _waitingForDirection = false; // Stop waiting once received
+                _waitingForDirection = false;
             }
             if (_waitingForSound && tag == "Sou") {
                 _remoteSound = value;
                 _responseSound = true;
-                _waitingForSound = false; // Stop waiting once received
-            }
-        })
-    }
-
-    /**
-    * Ejecuta una acción cuando se recibe un gesto específico por radio.
-    */
-    //% block="Cuando la micro:bit externa sea $gesture"
-    //% gesture.defl=Gesture.Shake
-    export function onGestureReceived(gesture: Gesture, handler: () => void): void {
-        control.onEvent(4001, EventBusValue.MICROBIT_EVT_ANY, function () {
-            let receivedGesture = control.eventValue();
-            if (receivedGesture === gesture) {
-                handler(); // Execute user-provided function if gesture matches
+                _waitingForSound = false;
             }
         });
     }
 
     /**
-    * Se elige un canal de radio por el cual mandarle los
-    * datos que pida la micro:bit conectada a la UBit.
-    */
-    //% block="Compartir sensores con UBit $int"
+     * Executes an action when a specific gesture is received via radio.
+     */
+    //% block="When external micro:bit is $gesture"
+    //% gesture.defl=Gesture.Shake
+    export function onGestureReceived(
+        gesture: Gesture,
+        handler: () => void,
+    ): void {
+        control.onEvent(4001, EventBusValue.MICROBIT_EVT_ANY, function () {
+            let receivedGesture = control.eventValue();
+            if (receivedGesture === gesture) {
+                handler();
+            }
+        });
+    }
+
+    /**
+     * Selects a radio channel to send the data requested by
+     * the micro:bit connected to the UBit.
+     */
+    //% block="Share sensors with UBit $int"
     //% int.min=1 int.max=255
     export function shareSensorsWithUBit(int: number): void {
         radio.setGroup(int);
-        
+
         radio.onReceivedString(function (msg: string) {
             handleMessage(msg);
         });
 
-        control.onEvent(EventBusSource.MICROBIT_ID_GESTURE, EventBusValue.MICROBIT_EVT_ANY, function () {
-            let gesture = control.eventValue();
-            radio.raiseEvent(4001, gesture); // Send the gesture event over radio
-        });
+        control.onEvent(
+            EventBusSource.MICROBIT_ID_GESTURE,
+            EventBusValue.MICROBIT_EVT_ANY,
+            function () {
+                let gesture = control.eventValue();
+                radio.raiseEvent(4001, gesture);
+            },
+        );
     }
-
 }
