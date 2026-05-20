@@ -173,12 +173,12 @@ namespace UBit {
     /**
      * Plays the number via audio on the UBit and displays it on the screen.
      */
-    //% block="Show number $num with audio"
-    export function RepNumberwithScreen(num: number) {
-        const numString = num.toString()
+    //% block="Show number $message with audio"
+    export function RepNumtwithScreen(message: number) {
+        let textString = message.toString();
         StopI2CScreen = 1;
-        sendTextBuffer(numString);
-        basic.showString(numString);
+        sendTextBuffer(textString);
+        basic.showString(textString);
         StopI2CScreen = 0;
     }
 
@@ -203,18 +203,6 @@ namespace UBit {
         sendWiFiBuffer(WiFi, Pssw);
         StopI2CScreen = 0;
         str = "";
-    }
-
-    /**
-     * Plays the number via audio on the UBit and displays it on the screen.
-     */
-    //% block="Show number $message with audio"
-    export function RepNumtwithScreen(message: number) {
-        let textString = message.toString();
-        StopI2CScreen = 1;
-        sendTextBuffer(textString);
-        basic.showString(textString);
-        StopI2CScreen = 0;
     }
 
     /**
