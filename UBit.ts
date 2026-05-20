@@ -181,10 +181,9 @@ namespace UBit {
      */
     //% block="Play $message via audio"
     //% message.shadow="text"
-    export function RepText(message: any) {
-        let text = message.toString();
+    export function RepText(message: string) {
         StopI2CScreen = 1;
-        sendTextBuffer(text);
+        sendTextBuffer(message);
         StopI2CScreen = 0;
     }
 

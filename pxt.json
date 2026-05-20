@@ -15,11 +15,15 @@
         "_locales/es-ES/fwd-ubit-strings.json",
         "_locales/es-ES/fwd-ubit-jsdoc-strings.json"
     ],
-    "testFiles": ["test.ts"],
+    "testFiles": [
+        "test.ts"
+    ],
     "targetVersions": {
-        "target": "7.0.61",
+        "target": "8.0.22",
         "targetId": "microbit"
     },
-    "supportedTargets": ["microbit"],
+    "supportedTargets": [
+        "microbit"
+    ],
     "preferredEditor": "tsprj"
 }
